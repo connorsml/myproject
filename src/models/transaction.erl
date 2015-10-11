@@ -8,13 +8,13 @@
 ).
 
 apply_transaction(MerchantToken, CardId, Amount0) ->
-    Amount = list_to_integer(binary_to_list(Amount0)),
+    Amount = list_to_integer(Amount0),
     R = fun() ->
 	Merchants = qlc:e(qlc:q([M || M <- mnesia:table(merchant), M#merchant.token == MerchantToken])),
         case Merchants of
             [] -> {error, bad_token};
             [Merchant] ->
-                Cards = qlc:e(qlc:q([C || C <- mnesia:table(card), C#card.card_id == CardId])),
+                Cards = qlc:e(qlc:q([C || C <- mnesia:table(card), C#card.card_id == list_to_binary(CardId)])),
                 case Cards of
                     [] -> {error, bad_card};
                     [Card] ->

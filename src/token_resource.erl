@@ -22,7 +22,9 @@ process_post(Request, Context) ->
             Token1 = "{\"token\": \""++Token++"\"}",
             {true, wrq:append_to_response_body(Token1, Request), Context};
         {error, bad_credentials} ->
-            {{halt, 401}, Request, Context};
+            Response = wrq:append_to_response_body("{\"error\":\"BAD_CREDENTIALS\"}", Request),
+            {{halt, 404}, Response, Context};
         {error, missing_credentials} ->
-            {{halt, 401}, Request, Context}
+            Response = wrq:append_to_response_body("{\"error\":\"MISSING_CREDENTIALS\"}", Request),
+            {{halt, 404}, Response, Context};
     end.

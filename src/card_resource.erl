@@ -19,18 +19,16 @@ content_types_provided(Request, Context) ->
     {[ {"application/json", to_json} ], Request, Context}.
 
 is_authorized(Request, Context) ->
-    Authorization = wrq:get_req_header("Authorization", Request),
-    <<_:48,Token/bitstring>> = list_to_binary(Authorization),
-    case merchant:authorized_merchant(Token) of
-        {ok, Merchant} ->
-            {true, Request, Context};
-        _ ->
-            {{halt, 401}, Request, Context}
-    end.
+    project_utils:is_authorized(Request, Context).
 
 to_json(Request, Context) ->
     Id = wrq:path_info(id, Request),
-    {ok, Balance} = card:get_balance(list_to_binary(Id)),
-    BalanceJson = "{\"balance\": \""++Balance++"\"}",
-    {true, wrq:append_to_response_body(BalanceJson, Request), Context}.
+    case card:get_balance(list_to_binary(Id)) of
+        {error, bad_card} ->
+            Response = wrq:append_to_response_body("{\"error\":\"BAD_CARD\"}", Request),
+            {{halt, 404}, Response, Context};
+        {ok, Balance} ->
+            BalanceJson = "{\"balance\": \""++Balance++"\"}",
+            {true, wrq:append_to_response_body(BalanceJson, Request), Context}
+    end.
 
