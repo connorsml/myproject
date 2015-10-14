@@ -14,7 +14,9 @@ allowed_methods(Request, Context) ->
     {['POST'], Request, Context}.
 
 process_post(Request, Context) ->
+    io:format("Request: ~p", [Request]),
     Params = mochiweb_util:parse_qs(wrq:req_body(Request)),
+    io:format("Params: ~p", [Params]),
     MerchantId = proplists:get_value("merchant_id", Params),
     Password = proplists:get_value("password", Params),
     case merchant:authorize(MerchantId, Password) of
@@ -26,5 +28,5 @@ process_post(Request, Context) ->
             {{halt, 404}, Response, Context};
         {error, missing_credentials} ->
             Response = wrq:append_to_response_body("{\"error\":\"MISSING_CREDENTIALS\"}", Request),
-            {{halt, 404}, Response, Context};
+            {{halt, 404}, Response, Context}
     end.
